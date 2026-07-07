@@ -11,6 +11,7 @@ on:
     paths:
       - 'ollama_server/Modelfile'
       - 'scripts/eval.py'
+  workflow_dispatch:
 
 jobs:
   eval:
