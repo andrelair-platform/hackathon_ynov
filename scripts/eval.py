@@ -37,7 +37,9 @@ LITELLM_BASE_URL    = os.environ["LITELLM_BASE_URL"]
 
 PROMPT_NAME    = "phi3-financial-system"
 DATASET_NAME   = "phi3-financial-evals"
-MODEL          = "phi3-financial"
+# EVAL_MODEL overrides the model used for CI — allows testing the system prompt
+# against a cloud model (e.g. Groq llama3) when the local cluster is unreachable.
+MODEL          = os.environ.get("EVAL_MODEL", "phi3-financial")
 PASS_THRESHOLD = 1.0  # 100% — all tests must pass
 
 # ── System prompt (read from Modelfile so this script stays in sync) ──────────
@@ -203,8 +205,8 @@ def main() -> int:
             response_text = completion.choices[0].message.content or ""
         except Exception as exc:
             error = str(exc)
+            print(f"         [debug] {type(exc).__name__}: {repr(exc)[:300]}")
 
-        # Score
         score_val, reason = (0.0, f"FAIL — model error: {error}") if error else score_response(case, response_text)
 
         # Log trace + score to Langfuse

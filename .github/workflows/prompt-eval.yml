@@ -37,6 +37,9 @@ jobs:
           LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
           LITELLM_API_KEY:     ${{ secrets.LITELLM_API_KEY }}
           LITELLM_BASE_URL:    ${{ secrets.LITELLM_BASE_URL }}
+          # Cloud model for CI — same system prompt, publicly reachable from GHA.
+          # Local phi3-financial is not directly reachable from GitHub Actions runners.
+          EVAL_MODEL:          ${{ secrets.EVAL_MODEL }}
         run: python scripts/eval.py
 
       - name: Upload eval results on failure
