@@ -37,6 +37,11 @@ LITELLM_BASE_URL    = os.environ["LITELLM_BASE_URL"]
 
 PROMPT_NAME    = "phi3-financial-system"
 DATASET_NAME   = "phi3-financial-evals"
+# Semantic version — bump on every intentional prompt change:
+#   MAJOR: persona or domain scope change  (v1→v2)
+#   MINOR: new safety rule or eval cases   (v2.0→v2.1)
+#   PATCH: keyword calibration, wording    (v2.0.0→v2.0.1)
+PROMPT_VERSION = "2.0.0"
 # EVAL_MODEL overrides the model used for CI — allows testing the system prompt
 # against a cloud model (e.g. Groq llama3) when the local cluster is unreachable.
 MODEL          = os.environ.get("EVAL_MODEL", "phi3-financial")
@@ -175,7 +180,7 @@ def main() -> int:
         name=PROMPT_NAME,
         prompt=SYSTEM_PROMPT,
         type="text",
-        labels=["production"],
+        labels=["production", f"v{PROMPT_VERSION}"],
         config={
             "temperature": 0.1,
             "top_p": 0.9,

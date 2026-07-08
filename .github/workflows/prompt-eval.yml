@@ -12,7 +12,7 @@ on:
       - 'ollama_server/Modelfile'
       - 'scripts/eval.py'
   # Weekly baseline run — catches silent model weight updates under the same tag
-  # (e.g. Ollama ships a new phi3.5 quantization without a version bump).
+  # (e.g. Ollama ships a new phi4-mini quantization without a version bump).
   # Runs every Monday 06:00 UTC against the current Modelfile on main.
   schedule:
     - cron: '0 6 * * 1'
@@ -22,6 +22,9 @@ jobs:
   eval:
     name: Run phi3-financial eval suite
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # needed to push git tags
 
     steps:
       - name: Checkout
@@ -57,10 +60,28 @@ jobs:
           LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
           LITELLM_API_KEY:     ${{ secrets.LITELLM_API_KEY }}
           LITELLM_BASE_URL:    ${{ secrets.LITELLM_BASE_URL }}
-          # EVAL_MODEL defaults to phi3-financial in eval.py — reaches local Ollama
-          # via Tailscale → 10.0.0.200 → NGINX → LiteLLM → Ollama (fast-heron).
-          # No EVAL_MODEL secret needed; remove from env if set to something else.
         run: python scripts/eval.py
+
+      # Tag the prompt version in git after a clean push to main.
+      # schedule and workflow_dispatch runs validate but do not re-tag
+      # (the version hasn't changed — the tag already exists).
+      - name: Tag prompt version in git
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          VERSION=$(python3 -c "
+          import re, pathlib
+          content = pathlib.Path('scripts/eval.py').read_text()
+          print(re.search(r'PROMPT_VERSION\s*=\s*[\"\']([\d.]+)[\"\'']', content).group(1))
+          ")
+          git config user.name  "AndreLiar"
+          git config user.email "andrelaurelyvan.kanmegnetabouguie@ynov.com"
+          if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q .; then
+            echo "Tag v${VERSION} already exists — skipping"
+          else
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+            echo "Tagged and pushed v${VERSION}"
+          fi
 
       - name: Upload eval results on failure
         if: failure()
