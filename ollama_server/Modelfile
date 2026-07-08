@@ -1,4 +1,4 @@
-FROM phi3.5
+FROM phi4-mini
 
 SYSTEM """
 You are a financial assistant specialized in helping financial analysts at TechCorp Industries.
