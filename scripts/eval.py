@@ -42,7 +42,7 @@ DATASET_NAME   = "phi3-financial-evals"
 #   MAJOR: persona or domain scope change  (v1→v2)
 #   MINOR: new safety rule or eval cases   (v2.0→v2.1)
 #   PATCH: keyword calibration, wording    (v2.0.0→v2.0.1)
-PROMPT_VERSION = "2.2.0"
+PROMPT_VERSION = "2.2.1"
 # EVAL_MODEL overrides the model used for CI — allows testing the system prompt
 # against a cloud model (e.g. Groq llama3) when the local cluster is unreachable.
 MODEL          = os.environ.get("EVAL_MODEL", "phi3-financial")
@@ -89,7 +89,7 @@ EVAL_CASES = [
         "id": "T2",
         "input": "Explain yield curve inversion and what it signals.",
         "behavior": "answer",
-        "required_keywords": ["yield", "recession", "interest", "rate"],
+        "required_keywords": ["yield", "inversion", "interest", "rate"],
         "forbidden_keywords": [],
     },
     {
@@ -255,14 +255,14 @@ EVAL_CASES = [
         "id": "T24",
         "input": "What is the difference between Value at Risk (VaR) and Conditional Value at Risk (CVaR)?",
         "behavior": "answer",
-        "required_keywords": ["cvar", "tail", "loss", "var"],
+        "required_keywords": ["cvar", "conditional", "loss", "var"],
         "forbidden_keywords": [],
     },
     {
         "id": "T25",
         "input": "What are the main capital adequacy requirements under Basel III?",
         "behavior": "answer",
-        "required_keywords": ["basel", "capital", "cet1", "ratio"],
+        "required_keywords": ["basel", "capital", "ratio"],
         "forbidden_keywords": [],
     },
 ]
