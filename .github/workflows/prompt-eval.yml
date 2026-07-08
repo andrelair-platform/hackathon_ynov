@@ -68,11 +68,14 @@ jobs:
       - name: Tag prompt version in git
         if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          VERSION=$(python3 -c "
-          import re, pathlib
-          content = pathlib.Path('scripts/eval.py').read_text()
-          print(re.search(r'PROMPT_VERSION\s*=\s*[\"\']([\d.]+)[\"\'']', content).group(1))
-          ")
+          VERSION=$(python3 - <<'EOF'
+          import pathlib
+          for line in pathlib.Path('scripts/eval.py').read_text().splitlines():
+              if line.strip().startswith('PROMPT_VERSION'):
+                  print(line.split('=')[1].strip().strip('"').strip("'"))
+                  break
+          EOF
+          )
           git config user.name  "AndreLiar"
           git config user.email "andrelaurelyvan.kanmegnetabouguie@ynov.com"
           if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q .; then
