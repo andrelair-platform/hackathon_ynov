@@ -58,9 +58,15 @@ jobs:
         env:
           LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${LITELLM_BASE_URL}/health" || echo "FAILED")
-          echo "LiteLLM /health → HTTP ${STATUS}"
-          [ "${STATUS}" = "200" ] || { echo "LiteLLM unreachable — aborting eval"; exit 1; }
+          # Tailscale subnet routes need a few seconds to propagate after connect.
+          # Retry for up to 30s before failing — same pattern as Harbor Docker push.
+          for i in 1 2 3 4 5 6; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "${LITELLM_BASE_URL}/health" 2>/dev/null || echo "000")
+            echo "LiteLLM /health → HTTP ${STATUS} (attempt ${i}/6)"
+            [ "${STATUS}" = "200" ] && break
+            [ "${i}" = "6" ] && { echo "LiteLLM unreachable after 30s — aborting eval"; exit 1; }
+            sleep 5
+          done
 
       - name: Run eval suite
         env:
