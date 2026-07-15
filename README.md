@@ -18,9 +18,9 @@
 |---|---|
 | ![Chat](docs/screenshots/screenshot-chat.png) | ![Prompts](docs/screenshots/screenshot-langfuse-prompts.png) |
 
-| Langfuse Eval Traces |
-|---|
-| ![Traces](docs/screenshots/screenshot-langfuse-traces.png) |
+| Langfuse Eval Traces | Langfuse Eval Dataset |
+|---|---|
+| ![Traces](docs/screenshots/screenshot-langfuse-traces.png) | ![Dataset](docs/screenshots/screenshot-langfuse-dataset.png) |
 
 ---
 
@@ -191,7 +191,7 @@ push / PR / weekly schedule
 ```
 25/25 PASS (100%)  —  PROMPT_VERSION 2.2.4
 Langfuse dataset:  phi3-financial-evals
-Eval runtime:      ~30 min (CPU inference on self-hosted ThinkPad nodes)
+Eval runtime:      ~7 min (Groq llama-3.1-8b-instant primary, Ollama fallback)
 ```
 
 Prompt rollback time: **under 5 minutes** via Langfuse label change.
