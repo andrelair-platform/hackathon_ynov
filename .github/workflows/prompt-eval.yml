@@ -54,26 +54,22 @@ jobs:
           echo "${{ secrets.MINICLOUD_CA_CERT }}" \
             >> $(python3 -c "import certifi; print(certifi.where())")
 
-      - name: Diagnose LiteLLM connectivity
+      - name: Diagnose connectivity and key
         env:
           LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+          LITELLM_API_KEY:  ${{ secrets.LITELLM_API_KEY }}
         run: |
-          HOST=$(echo "${LITELLM_BASE_URL}" | sed 's|https://||;s|http://||;s|/.*||')
-          echo "=== Tailscale status ==="
-          tailscale status 2>&1 || true
-          echo "=== DNS resolution ==="
-          dig +short "${HOST}" || nslookup "${HOST}" 2>&1 | head -5 || true
-          echo "=== TCP connectivity (port 443) ==="
-          timeout 6 bash -c "echo >/dev/tcp/${HOST}/443" 2>&1 && echo "TCP 443 OPEN" || echo "TCP 443 FAILED"
-          echo "=== TCP connectivity (port 80) ==="
-          timeout 6 bash -c "echo >/dev/tcp/${HOST}/80" 2>&1 && echo "TCP 80 OPEN" || echo "TCP 80 FAILED"
-          echo "=== HTTPS health check (insecure) ==="
-          curl -sk -o /dev/null -w "HTTP %{http_code}" --connect-timeout 5 "https://${HOST}/health" 2>&1 || true
-          echo ""
-          echo "=== HTTPS health check (with CA) ==="
-          curl -s -o /dev/null -w "HTTP %{http_code}" --cacert /usr/local/share/ca-certificates/minicloud-ca.crt \
-            --connect-timeout 5 "https://${HOST}/health" 2>&1 || true
-          echo ""
+          echo "=== Key prefix (first 8 chars, for triage only) ==="
+          echo "${LITELLM_API_KEY}" | cut -c1-8
+          echo "=== Health check ==="
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" "${LITELLM_BASE_URL}/health"
+          echo "=== Authenticated test call ==="
+          curl -s -w "\nHTTP %{http_code}" \
+            -X POST "${LITELLM_BASE_URL}/v1/chat/completions" \
+            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"phi3-financial","messages":[{"role":"user","content":"What is 2+2?"}],"max_tokens":5}' \
+            --connect-timeout 10 | tail -2
 
       - name: Run eval suite
         env:
