@@ -54,22 +54,13 @@ jobs:
           echo "${{ secrets.MINICLOUD_CA_CERT }}" \
             >> $(python3 -c "import certifi; print(certifi.where())")
 
-      - name: Diagnose connectivity and key
+      - name: Check LiteLLM connectivity
         env:
           LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
-          LITELLM_API_KEY:  ${{ secrets.LITELLM_API_KEY }}
         run: |
-          echo "=== Key prefix (first 8 chars, for triage only) ==="
-          echo "${LITELLM_API_KEY}" | cut -c1-8
-          echo "=== Health check ==="
-          curl -s -o /dev/null -w "HTTP %{http_code}\n" "${LITELLM_BASE_URL}/health"
-          echo "=== Authenticated test call ==="
-          curl -s -w "\nHTTP %{http_code}" \
-            -X POST "${LITELLM_BASE_URL}/v1/chat/completions" \
-            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d '{"model":"phi3-financial","messages":[{"role":"user","content":"What is 2+2?"}],"max_tokens":5}' \
-            --connect-timeout 10 | tail -2
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${LITELLM_BASE_URL}/health")
+          echo "LiteLLM /health → HTTP ${STATUS}"
+          [ "${STATUS}" = "200" ] || { echo "LiteLLM unreachable — aborting eval"; exit 1; }
 
       - name: Run eval suite
         env:

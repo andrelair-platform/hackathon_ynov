@@ -298,7 +298,11 @@ def main() -> int:
         secret_key=LANGFUSE_SECRET_KEY,
         host=LANGFUSE_HOST,
     )
-    oai = OpenAI(api_key=LITELLM_API_KEY, base_url=f"{LITELLM_BASE_URL}/v1")
+    oai = OpenAI(
+        api_key=LITELLM_API_KEY,
+        base_url=f"{LITELLM_BASE_URL}/v1",
+        default_headers={"User-Agent": "minicloud-eval/1.0"},
+    )
 
     run_name = f"eval-{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     print(f"\n=== phi3-financial Prompt Eval  [{run_name}] ===\n")
