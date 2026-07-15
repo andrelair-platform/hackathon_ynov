@@ -1,7 +1,0 @@
-# Dépendances pour les scripts Python du projet
-torch>=2.1.0
-transformers>=4.45.0
-peft>=0.12.0
-accelerate>=0.34.0
-bitsandbytes>=0.43.0
-datasets>=2.20.0
